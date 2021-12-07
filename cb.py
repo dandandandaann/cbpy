@@ -52,8 +52,8 @@ parser.add_argument("-dry", "--dry-run", help="Test script by printing commands 
 parser.add_argument("-git", "--gitcommand", type=str, nargs="+", help="run git command on selected projects. use _ instead of - for compatibility eg: py cb.py -git 'merge __no_ff END-12345' web api")
 parser.add_argument("-pw", "--powershell", type=str, nargs="+", help="run powershell command on selected projects. use _ instead of - for compatibility eg: py cb.py -pw '\\\"Current folder: $(Split-Path _Path (Get-Location) _Leaf)\\\"' web api")
 parser.add_argument("-ef", "--dotnet-ef", type=str, nargs="+", help="execute dotnet ef to 'add' or 'update' migrations from Endor.EF eg: py -ef add END-54321_Drop_BusinessDB1 ")
+parser.add_argument("-r", "--restore", help="restore nuget packages in every project (you need nuget.exe CLI added to your PATH for this command to work)", action="store_true")
 # future commands
-# parser.add_argument("-r", "--restorepkg", help="restore nuget packages in every project (you need nuget.exe CLI added to your PATH for this command to work)", action="store_true")
 # parser.add_argument("-nu", "--nugetupdate", type=str, help="run dotnet add and dotnet restore for the selected project in its dependents eg: py cb.py -nu Endor.Model")
 parser.add_argument("-hosts", "--open-hosts", action="store_true", help="open windows hosts file in notepad as administrator")
 
@@ -125,7 +125,7 @@ def run(command):
 
         return fullOutput
 
-def popen(command, exe = 'powershell.exe'):
+def popen(command, exe = 'powershell.exe'): # TODO: load powershell.exe from json config file
     if dryrun:
         print(f'{exe} {command}')
     else:
@@ -183,7 +183,7 @@ def main(args):
 
     if  (args.branch is None and args.checkout is None and args.exportbacpac is None and args.npmi == False and args.merge is None and
         args.start is None and args.status == False and args.undochanges == False and args.stash == False and args.gitcommand is None and
-        args.powershell is None and args.dotnet_ef is None and args.open_hosts == False):
+        args.powershell is None and args.dotnet_ef is None and args.open_hosts == False and args.restore == False):
         parser.print_help()
         return
     
@@ -239,7 +239,7 @@ def main(args):
             pwCommand = joinedArgs[joinedArgs.index(singleQuote) + 1:joinedArgs.rindex(singleQuote)]
 
             if currentProject in joinedArgs.replace(pwCommand, ''):
-                popen(pwCommand.replace('_', '-'), 'powershell.exe')
+                popen(pwCommand.replace('_', '-'))
 
         if args.gitcommand and currentProject in args.gitcommand:
             joinedArgs = ' '.join(args.gitcommand)
@@ -281,11 +281,6 @@ def main(args):
                             notStaged += '\n' + (' ' * 7) + outputLines[line]
                     summary[f'{notStagedMessage} in {dir}'] = notStaged
 
-                    # Changes not staged for commit:
-                    #   (use "git add <file>..." to update what will be committed)
-                    #   (use "git restore <file>..." to discard changes in working directory)
-                    #         modified:   Endor.Api.Web/Endor.Api.Web.csproj
-
         if args.merge:
             git(f"merge --no-ff {args.merge}")
         elif valid_branch(args.branch):
@@ -304,7 +299,14 @@ def main(args):
             elif args.dotnet_ef[0] == "add":
                 execute(f"dotnet ef migrations {' '.join(args.dotnet_ef)} -s ..\\Endor.EF.StartupEmulator\\Endor.EF.StartupEmulator.csproj")
 
-    # END for dir in validDirs:
+        if args.restore and dir not in ["end-web"]:
+            if dir == "end-common":
+                execute(f'dotnet restore "Endor.Common.Level1.sln" --configfile "%AppData%/NuGet/NuGet.Config"');
+                execute(f'dotnet restore "Endor.Common.Level2.sln" --configfile "%AppData%/NuGet/NuGet.Config"');
+            else:
+                execute(f'dotnet restore --configfile "%AppData%/NuGet/NuGet.Config"');
+
+    # for dir in validDirs: END
 
     if not repos_found:
         warn(f"Error: No repositories found in {args.path}")
@@ -331,7 +333,7 @@ def main(args):
                 continue
 
     if args.exportbacpac:
-        bacpacPath = 'C:/Users/danie/Desktop/Corebridge/DB/' # TODO: make this generic
+        bacpacPath = 'C:/Users/danie/Desktop/Corebridge/DB/' # TODO: load from json config file
         bacpacScript = f'./export_{args.exportbacpac}_bacpac.ps1'
         try:
             os.chdir(bacpacPath)
