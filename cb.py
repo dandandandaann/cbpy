@@ -47,20 +47,23 @@ parser.add_argument("-S", "--status", help="shows git status of repos", action="
 parser.add_argument("-u", "--undochanges", help="undo local changes with 'git reset --hard' before checkout", action="store_true")
 parser.add_argument("-x", "--stash", help="will run git stash on every repo", action="store_true")
 parser.add_argument("-v", "--verbose", help="show logs when executing", action="store_true")
-# new commands
 parser.add_argument("-dry", "--dry-run", help="Test script by printing commands instead of executing them", action="store_true")
+# new commands
 parser.add_argument("-git", "--gitcommand", type=str, nargs="+", help="run git command on selected projects. use _ instead of - for compatibility eg: py cb.py -git 'merge __no_ff END-12345' web api")
 parser.add_argument("-pw", "--powershell", type=str, nargs="+", help="run powershell command on selected projects. use _ instead of - for compatibility eg: py cb.py -pw '\\\"Current folder: $(Split-Path _Path (Get-Location) _Leaf)\\\"' web api")
 parser.add_argument("-ef", "--dotnet-ef", type=str, nargs="+", help="execute dotnet ef to 'add' or 'update' migrations from Endor.EF eg: py -ef add END-54321_Drop_BusinessDB1 ")
 parser.add_argument("-r", "--restore", help="restore nuget packages in every project (you need nuget.exe CLI added to your PATH for this command to work)", action="store_true")
+parser.add_argument("-hosts", "--open-hosts", action="store_true", help="open windows hosts file in notepad")
 # future commands
 # parser.add_argument("-nu", "--nugetupdate", type=str, help="run dotnet add and dotnet restore for the selected project in its dependents eg: py cb.py -nu Endor.Model")
-parser.add_argument("-hosts", "--open-hosts", action="store_true", help="open windows hosts file in notepad as administrator")
 
 verbose = False
 dryrun = False
 
 summary = {}
+
+def IsNewCommand(args):
+    return args.gitcommand is not None or args.powershell is not None or args.dotnet_ef  is not None or args.restore == True or args.open_hosts == True
 
 def log(log_entry, force = False):
     if verbose or force:
@@ -126,9 +129,9 @@ def run(command):
         return fullOutput
 
 def popen(command, exe = 'powershell.exe'): # TODO: load powershell.exe from json config file
-    if dryrun:
+    if dryrun or verbose:
         print(f'{exe} {command}')
-    else:
+    if not dryrun:
         subprocess.Popen([exe, command])
 
 def git(command):
@@ -190,6 +193,9 @@ def main(args):
     global verbose
     global dryrun
     global summary
+
+    if IsNewCommand(args):
+        args.verbose = True
 
     verbose = args.verbose
     if args.dry_run:
@@ -347,9 +353,9 @@ def main(args):
             fail(f"Error: Unknown Error starting {runCmd}")
     
     if args.open_hosts:
-        fail(f"Error: open hosts command not implemented")
-        # check if is running as admin?
-        # run as admin: notepad.exe C:\Windows\System32\drivers\etc\hosts 
+        popen('Start-Process -Verb "runas" notepad.exe C:/Windows/System32/drivers/etc/hosts')
+        # fail(f"Error: open hosts command not implemented")
+        # check if running as admin?
 
     if summary:
         print ('Summary: ')
