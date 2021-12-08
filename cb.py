@@ -35,6 +35,7 @@ projectMap = {
 }
 
 parser = argparse.ArgumentParser(description="Tool to work with ENDOR.")
+parser.add_argument("-a", "--azurite", help="run azurite", action="store_true")
 parser.add_argument("-b", "--branch", type=str, help="create the branch")
 parser.add_argument("-c", "--checkout", type=str, nargs="+", help="the target branch to checkout")
 parser.add_argument("-d", "--defaultbranch", type=str, default="dev", nargs="?", help="specify branch to checkout when --checkout branch is not found")
@@ -211,8 +212,10 @@ def main(args):
     if valid_branch(args.checkout):
         args.status = True # force --status to creat summary
         branchInputed = [i for i in args.checkout if i not in projectMap.keys()] # filter branch name in the arguments
+        print(validDirs)
+
         for dir in validDirs:
-            if(len(args.checkout) > 1 and dir.split('-', 1)[1] not in args.checkout): # check if current project was not selected
+            if(len(args.checkout) > 1 and dir.split('-', 1)[-1] not in args.checkout): # check if current project was not selected
                 continue
             if dryrun:
                 checkout(branchInputed[0], dir, args.path, args.defaultbranch, args.undochanges, verbose)
@@ -228,7 +231,7 @@ def main(args):
 
     for dir in validDirs:
         repos_found = True
-        currentProject = dir.split('-', 1)[1]
+        currentProject = dir.split('-', 1)[-1]
         try:
             os.chdir(os.path.join(args.path, dir))
         except PermissionError:
@@ -326,10 +329,11 @@ def main(args):
             good(f"{item} starting...")
             try:
                 os.chdir(os.path.join(args.path, projectMap[item].filepath))
-                runCmd = "Powershell -Command {{ Start-Process powershell -ArgumentList ('Set-Location \"{0}\"; {1}') -Verb RunAs }}".format(
+                runCmd = "Start-Process pwsh '-NoExit -c', 'Set-Location \"{0}\"; {1}' -Verb RunAs".format(
                     os.path.join(args.path, projectMap[item].filepath),
                     (projectMap[item].command, './' + projectMap[item].command)[".ps1" in projectMap[item].command]
                 )
+
                 popen(runCmd)
             except FileNotFoundError:
                 fail(f"Error: {os.path.join(args.path, projectMap[item].filepath)} is not a valid path.")
@@ -339,11 +343,11 @@ def main(args):
                 continue
 
     if args.exportbacpac:
-        bacpacPath = 'C:/Users/danie/Desktop/Corebridge/DB/' # TODO: load from json config file
+        bacpacPath = 'C:/Users/*/Desktop/Corebridge/DB/' # TODO: load from json config file
         bacpacScript = f'./export_{args.exportbacpac}_bacpac.ps1'
         try:
             os.chdir(bacpacPath)
-            runCmd = "Powershell -Command {{ Start-Process powershell -ArgumentList ('Set-Location \"{0}\"; {1}') -Verb RunAs }}".format(
+            runCmd = "pwsh '-NoExit -c', 'Set-Location \"{0}\"; {1}' -Verb RunAs".format(
                 bacpacPath, bacpacScript
             )
             popen(runCmd)
@@ -361,6 +365,10 @@ def main(args):
         print ('Summary: ')
         for key in sorted(list(summary), key=str.casefold):
             print('  ', key, ' -> ', summary[key])
+
+    if args.azurite:
+        runCmd = "Start-Process pwsh '-c', 'azurite -s -l C:\\CoreBridge\\Azurite -d C:\\CoreBridge\\Azurite\\debug.log' -Verb RunAs"
+        popen(runCmd)
 
     return
 
