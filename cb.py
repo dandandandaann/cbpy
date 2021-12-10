@@ -5,34 +5,35 @@ import os
 import subprocess
 import ctypes
 import sys
+import json
 from multiprocessing import Process
 
 class Project:
-  def __init__(self, filepath, command):
+  def __init__(self, filepath, script, command):
     self.filepath = filepath
+    self.script = script
     self.command = command
 
-# TODO: load this from a json config file
+settings = json.load(open('/cb.json'))
+cb = settings['cb']
+del settings['cb']
+
 # This is where you configure your server filepath with its start command.
 # Most servers use the `./start_server.ps1` command.
-projectMap = {
-#    "azurite" : Project("../", "run_azurite.ps1"),
-    "ape" : Project("end-ape/APE/", "start_server.ps1"),
-    "api" : Project("end-api/Endor.Api.Web/", "start_server.ps1"),
-    "ate" : Project("end-ate/ATE/", "start_server.ps1"),
-    "auth" : Project("end-auth/Endor.Auth.Web/", "start_server.ps1"),
-    "boardapi" : Project("end-boardapi/Endor.BoardApi.Web/", "start_server.ps1"),
-    "common" : None,
-    "integrations" : Project("end-integrations/src/CoreBridge.Integrations.Web", "start_server.ps1"),
-    "logging" : Project("end-logging/Endor.Logging.Web/", "start_server.ps1"),
-    "comms" : Project("end-comms/src/Endor.Comm.Web/", "start_server.ps1"),
-    "reporting" : Project("end-reporting/src/Endor.Reporting.Web/", "start_server.ps1"),
-    "rtc" : Project("end-rtc/Endor.RTC.Core.Web/", "start_server.ps1"),
-    "rtcpeerhost" : Project("end-rtcpeerhost/Endor.RTC.PeerHost.Web/",  "start_server.ps1"),
-    "search" : Project("end-search-core/Endor.Search.Web/", "start_server.ps1"),
-    "tasks" : Project("end-tasks/src/Endor.Tasks.Web/", "start_server.ps1"),
-    "web" : Project("end-web/", "npm start")
-}
+projectMap = dict()
+
+for key in settings.keys():
+  path = settings[key]['path']
+  script = None
+  cmd = None
+
+  if 'stScript' in settings[key]:
+    script = settings[key]['stScript']
+    
+  if 'stCmd' in settings[key]:
+    cmd = settings[key]['stCmd']
+
+  projectMap[key] = Project(path, script, cmd)
 
 parser = argparse.ArgumentParser(description="Tool to work with ENDOR.")
 parser.add_argument("-b", "--branch", type=str, help="create the branch")
