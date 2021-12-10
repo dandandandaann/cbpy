@@ -187,7 +187,7 @@ def main(args):
 
     if  (args.branch is None and args.checkout is None and args.exportbacpac is None and args.npmi == False and args.merge is None and
         args.start is None and args.status == False and args.undochanges == False and args.stash == False and args.gitcommand is None and
-        args.powershell is None and args.dotnet_ef is None and args.open_hosts == False and args.restore == False):
+        args.powershell is None and args.dotnet_ef is None and args.open_hosts == False and args.restore == False and args.azurite is None):
         parser.print_help()
         return
     
@@ -212,7 +212,6 @@ def main(args):
     if valid_branch(args.checkout):
         args.status = True # force --status to creat summary
         branchInputed = [i for i in args.checkout if i not in projectMap.keys()] # filter branch name in the arguments
-        print(validDirs)
 
         for dir in validDirs:
             if(len(args.checkout) > 1 and dir.split('-', 1)[-1] not in args.checkout): # check if current project was not selected
