@@ -1,0 +1,78 @@
+{
+  "cb": {
+    "path": ""
+  },
+  "ape": {
+    "path": "end-ape/APE/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "api": {
+    "path": "end-api/Endor.Api.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "ate": {
+    "path": "end-ate/ATE/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "auth": {
+    "path": "end-auth/Endor.Auth.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "boardapi": {
+    "path": "end-boardapi/Endor.BoardApi.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "common": {
+    "path": "end-common/"
+  },
+  "integrations": {
+    "path": "end-integrations/src/CoreBridge.Integrations.Web",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "logging": {
+    "path": "end-logging/Endor.Logging.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "comms": {
+    "path": "end-comms/src/Endor.Comm.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "reporting": {
+    "path": "end-reporting/src/Endor.Reporting.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "rtc": {
+    "path": "end-rtc/Endor.RTC.Core.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "rtcpeerhost": {
+    "path": "end-rtcpeerhost/Endor.RTC.PeerHost.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "search": {
+    "path": "end-search-core/Endor.Search.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "tasks": {
+    "path": "end-tasks/src/Endor.Tasks.Web/",
+    "stScript": "start_server.ps1",
+    "stCmd": ""
+  },
+  "web": {
+    "path": "end-web/",
+    "stScript": "",
+    "stCmd": "npm start"
+  }
+}
